@@ -7,6 +7,7 @@ pub mod graph;
 pub mod hierarchy;
 pub mod key_value;
 pub mod methods;
+pub mod relation;
 pub mod security;
 pub mod temporal;
 pub mod utils;

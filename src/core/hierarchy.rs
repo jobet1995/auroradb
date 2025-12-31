@@ -61,9 +61,7 @@ where
 {
     /// Create new hierarchy engine
     pub fn new() -> Self {
-        Self {
-            trees: HashMap::new(),
-        }
+        Self { trees: HashMap::new() }
     }
 
     /// Create tree
@@ -75,8 +73,7 @@ where
 
     /// Insert node
     pub fn insert_node(&mut self, tree_id: Uuid, parent_id: Option<Uuid>, data: T) -> Result<Uuid, HierarchyError> {
-        let tree = self.trees.get_mut(&tree_id)
-            .ok_or(HierarchyError::TreeNotFound(tree_id))?;
+        let tree = self.trees.get_mut(&tree_id).ok_or(HierarchyError::TreeNotFound(tree_id))?;
 
         let node_id = Uuid::new_v4();
 
@@ -107,13 +104,7 @@ where
         };
 
         // Create node
-        let node = TreeNode {
-            id: node_id,
-            parent_id,
-            data,
-            children: vec![],
-            level,
-        };
+        let node = TreeNode { id: node_id, parent_id, data, children: vec![], level };
 
         tree.nodes.insert(node_id, node);
 
@@ -122,8 +113,7 @@ where
 
     /// Delete node
     pub fn delete_node(&mut self, tree_id: Uuid, node_id: Uuid) -> Result<TreeOperationResult, HierarchyError> {
-        let tree = self.trees.get_mut(&tree_id)
-            .ok_or(HierarchyError::TreeNotFound(tree_id))?;
+        let tree = self.trees.get_mut(&tree_id).ok_or(HierarchyError::TreeNotFound(tree_id))?;
 
         if !tree.nodes.contains_key(&node_id) {
             return Err(HierarchyError::NodeNotFound(node_id));
@@ -154,20 +144,16 @@ where
 
     /// Get node
     pub fn get_node(&self, tree_id: Uuid, node_id: Uuid) -> Result<&TreeNode<T>, HierarchyError> {
-        let tree = self.trees.get(&tree_id)
-            .ok_or(HierarchyError::TreeNotFound(tree_id))?;
+        let tree = self.trees.get(&tree_id).ok_or(HierarchyError::TreeNotFound(tree_id))?;
 
-        tree.nodes.get(&node_id)
-            .ok_or(HierarchyError::NodeNotFound(node_id))
+        tree.nodes.get(&node_id).ok_or(HierarchyError::NodeNotFound(node_id))
     }
 
     /// Get children
     pub fn get_children(&self, tree_id: Uuid, node_id: Uuid) -> Result<Vec<&TreeNode<T>>, HierarchyError> {
-        let tree = self.trees.get(&tree_id)
-            .ok_or(HierarchyError::TreeNotFound(tree_id))?;
+        let tree = self.trees.get(&tree_id).ok_or(HierarchyError::TreeNotFound(tree_id))?;
 
-        let node = tree.nodes.get(&node_id)
-            .ok_or(HierarchyError::NodeNotFound(node_id))?;
+        let node = tree.nodes.get(&node_id).ok_or(HierarchyError::NodeNotFound(node_id))?;
 
         let mut children = Vec::new();
         for &child_id in &node.children {
@@ -181,11 +167,9 @@ where
 
     /// Get parent
     pub fn get_parent(&self, tree_id: Uuid, node_id: Uuid) -> Result<Option<&TreeNode<T>>, HierarchyError> {
-        let tree = self.trees.get(&tree_id)
-            .ok_or(HierarchyError::TreeNotFound(tree_id))?;
+        let tree = self.trees.get(&tree_id).ok_or(HierarchyError::TreeNotFound(tree_id))?;
 
-        let node = tree.nodes.get(&node_id)
-            .ok_or(HierarchyError::NodeNotFound(node_id))?;
+        let node = tree.nodes.get(&node_id).ok_or(HierarchyError::NodeNotFound(node_id))?;
 
         if let Some(parent_id) = node.parent_id {
             Ok(tree.nodes.get(&parent_id))
@@ -196,16 +180,10 @@ where
 
     /// Find path between nodes
     pub fn find_path(&self, tree_id: Uuid, from_node: Uuid, to_node: Uuid) -> Result<PathResult, HierarchyError> {
-        let tree = self.trees.get(&tree_id)
-            .ok_or(HierarchyError::TreeNotFound(tree_id))?;
+        let tree = self.trees.get(&tree_id).ok_or(HierarchyError::TreeNotFound(tree_id))?;
 
         if !tree.nodes.contains_key(&from_node) || !tree.nodes.contains_key(&to_node) {
-            return Ok(PathResult {
-                path: vec![],
-                distance: 0,
-                found: false,
-                visited_nodes: 0,
-            });
+            return Ok(PathResult { path: vec![], distance: 0, found: false, visited_nodes: 0 });
         }
 
         // Simple path finding - get path to root for both and find common ancestor
@@ -293,11 +271,7 @@ pub struct TreeBuilder<T> {
 impl<T> TreeBuilder<T> {
     /// Create new tree builder
     pub fn new(name: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            description: None,
-            root_data: None,
-        }
+        Self { name: name.to_string(), description: None, root_data: None }
     }
 
     /// Set description
