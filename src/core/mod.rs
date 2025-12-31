@@ -4,5 +4,6 @@ pub mod filters;
 pub mod graph;
 pub mod key_value;
 pub mod methods;
+pub mod security;
 pub mod utils;
 pub mod variables;
