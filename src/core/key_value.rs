@@ -55,14 +55,14 @@ pub struct KeyNamespace {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AtomicOperation {
     Set(Value),
-    SetNX(Value), // Set if not exists
-    GetSet(Value), // Get old value and set new
-    Inc(i64), // Increment integer
-    Dec(i64), // Decrement integer
-    Append(String), // Append to string
-    Prepend(String), // Prepend to string
+    SetNX(Value),               // Set if not exists
+    GetSet(Value),              // Get old value and set new
+    Inc(i64),                   // Increment integer
+    Dec(i64),                   // Decrement integer
+    Append(String),             // Append to string
+    Prepend(String),            // Prepend to string
     Push(Value, PushDirection), // Push to list
-    Pop(PushDirection), // Pop from list
+    Pop(PushDirection),         // Pop from list
 }
 
 /// Push direction for lists
@@ -217,11 +217,7 @@ impl KeyValueEngine {
     }
 
     /// Create a namespace
-    pub async fn create_namespace(
-        &mut self,
-        name: &str,
-        config: NamespaceConfig,
-    ) -> Result<(), KeyValueError> {
+    pub async fn create_namespace(&mut self, name: &str, config: NamespaceConfig) -> Result<(), KeyValueError> {
         if self.namespaces.contains_key(name) {
             return Err(KeyValueError::KeyExists(format!("Namespace {} already exists", name)));
         }
@@ -350,7 +346,12 @@ impl KeyValueEngine {
     }
 
     /// Set expiration time for key
-    pub async fn expire(&mut self, key: &str, ttl_seconds: u64, namespace: Option<&str>) -> Result<bool, KeyValueError> {
+    pub async fn expire(
+        &mut self,
+        key: &str,
+        ttl_seconds: u64,
+        namespace: Option<&str>,
+    ) -> Result<bool, KeyValueError> {
         self.validate_namespace(namespace)?;
 
         let full_key = self.make_full_key(key, namespace);
@@ -419,23 +420,21 @@ impl KeyValueEngine {
                 Ok(old_value)
             }
             AtomicOperation::Inc(amount) => {
-                let current = self.get(key, namespace).await?
-                    .and_then(|v| v.as_i64())
-                    .unwrap_or(0);
+                let current = self.get(key, namespace).await?.and_then(|v| v.as_i64()).unwrap_or(0);
                 let new_value = current + amount;
                 self.set(key, Value::Number(new_value.into()), None, namespace).await?;
                 Ok(Some(Value::Number(new_value.into())))
             }
             AtomicOperation::Dec(amount) => {
-                let current = self.get(key, namespace).await?
-                    .and_then(|v| v.as_i64())
-                    .unwrap_or(0);
+                let current = self.get(key, namespace).await?.and_then(|v| v.as_i64()).unwrap_or(0);
                 let new_value = current - amount;
                 self.set(key, Value::Number(new_value.into()), None, namespace).await?;
                 Ok(Some(Value::Number(new_value.into())))
             }
             AtomicOperation::Append(string) => {
-                let current = self.get(key, namespace).await?
+                let current = self
+                    .get(key, namespace)
+                    .await?
                     .and_then(|v| v.as_str().map(|s| s.to_string()))
                     .unwrap_or_else(|| "".to_string());
                 let new_value = format!("{}{}", current, string);
@@ -443,7 +442,9 @@ impl KeyValueEngine {
                 Ok(Some(Value::String(new_value)))
             }
             AtomicOperation::Prepend(string) => {
-                let current = self.get(key, namespace).await?
+                let current = self
+                    .get(key, namespace)
+                    .await?
                     .and_then(|v| v.as_str().map(|s| s.to_string()))
                     .unwrap_or_else(|| "".to_string());
                 let new_value = format!("{}{}", string, current);
@@ -451,7 +452,9 @@ impl KeyValueEngine {
                 Ok(Some(Value::String(new_value)))
             }
             AtomicOperation::Push(value, direction) => {
-                let mut current = self.get(key, namespace).await?
+                let mut current = self
+                    .get(key, namespace)
+                    .await?
                     .and_then(|v| v.as_array().cloned())
                     .unwrap_or_default();
 
@@ -464,7 +467,9 @@ impl KeyValueEngine {
                 Ok(Some(Value::Array(current)))
             }
             AtomicOperation::Pop(direction) => {
-                let mut current = self.get(key, namespace).await?
+                let mut current = self
+                    .get(key, namespace)
+                    .await?
                     .and_then(|v| v.as_array().cloned())
                     .unwrap_or_default();
 
@@ -475,8 +480,12 @@ impl KeyValueEngine {
 
                 if popped.is_some() {
                     match direction {
-                        PushDirection::Left => { current.remove(0); }
-                        PushDirection::Right => { current.pop(); }
+                        PushDirection::Left => {
+                            current.remove(0);
+                        }
+                        PushDirection::Right => {
+                            current.pop();
+                        }
                     }
                     self.set(key, Value::Array(current), None, namespace).await?;
                 }
@@ -487,7 +496,11 @@ impl KeyValueEngine {
     }
 
     /// Compare and swap
-    pub async fn compare_and_swap(&mut self, cas: CasOperation, namespace: Option<&str>) -> Result<bool, KeyValueError> {
+    pub async fn compare_and_swap(
+        &mut self,
+        cas: CasOperation,
+        namespace: Option<&str>,
+    ) -> Result<bool, KeyValueError> {
         self.validate_namespace(namespace)?;
 
         let full_key = self.make_full_key(&cas.key, namespace);
@@ -512,7 +525,11 @@ impl KeyValueEngine {
     }
 
     /// Execute batch operations
-    pub async fn execute_batch(&mut self, batch: BatchOperation, namespace: Option<&str>) -> Result<BatchResult, KeyValueError> {
+    pub async fn execute_batch(
+        &mut self,
+        batch: BatchOperation,
+        namespace: Option<&str>,
+    ) -> Result<BatchResult, KeyValueError> {
         let start_time = std::time::Instant::now();
 
         if batch.atomic {
@@ -537,15 +554,13 @@ impl KeyValueEngine {
                     results.push(result);
                 }
             } else {
-                return Err(KeyValueError::AtomicOperationFailed("Some keys do not exist for atomic batch".to_string()));
+                return Err(KeyValueError::AtomicOperationFailed(
+                    "Some keys do not exist for atomic batch".to_string(),
+                ));
             }
 
             let execution_time = start_time.elapsed().as_millis() as u64;
-            Ok(BatchResult {
-                results,
-                success: true,
-                execution_time_ms: execution_time,
-            })
+            Ok(BatchResult { results, success: true, execution_time_ms: execution_time })
         } else {
             // Non-atomic batch - execute all, collect results
             let mut results = Vec::new();
@@ -556,11 +571,7 @@ impl KeyValueEngine {
             }
 
             let execution_time = start_time.elapsed().as_millis() as u64;
-            Ok(BatchResult {
-                results,
-                success: true,
-                execution_time_ms: execution_time,
-            })
+            Ok(BatchResult { results, success: true, execution_time_ms: execution_time })
         }
     }
 
@@ -610,7 +621,12 @@ impl KeyValueEngine {
     }
 
     /// Publish message to channel
-    pub async fn publish(&mut self, channel: &str, message: Value, publisher: Option<String>) -> Result<usize, KeyValueError> {
+    pub async fn publish(
+        &mut self,
+        channel: &str,
+        message: Value,
+        publisher: Option<String>,
+    ) -> Result<usize, KeyValueError> {
         let pubsub_message = PubSubMessage {
             channel: channel.to_string(),
             message,
@@ -654,18 +670,15 @@ impl KeyValueEngine {
 
     /// Subscribe to channels
     pub async fn subscribe(&mut self, subscriber_id: Uuid, channels: Vec<String>) -> Result<(), KeyValueError> {
-        let subscription = self.pubsub.subscribers.entry(subscriber_id)
-            .or_insert_with(|| Subscription {
-                channels: HashSet::new(),
-                patterns: HashSet::new(),
-                message_queue: VecDeque::new(),
-            });
+        let subscription = self.pubsub.subscribers.entry(subscriber_id).or_insert_with(|| Subscription {
+            channels: HashSet::new(),
+            patterns: HashSet::new(),
+            message_queue: VecDeque::new(),
+        });
 
         for channel in channels {
             subscription.channels.insert(channel.clone());
-            self.pubsub.channels.entry(channel)
-                .or_default()
-                .insert(subscriber_id);
+            self.pubsub.channels.entry(channel).or_default().insert(subscriber_id);
         }
 
         Ok(())
@@ -673,18 +686,15 @@ impl KeyValueEngine {
 
     /// Subscribe to channel patterns
     pub async fn psubscribe(&mut self, subscriber_id: Uuid, patterns: Vec<String>) -> Result<(), KeyValueError> {
-        let subscription = self.pubsub.subscribers.entry(subscriber_id)
-            .or_insert_with(|| Subscription {
-                channels: HashSet::new(),
-                patterns: HashSet::new(),
-                message_queue: VecDeque::new(),
-            });
+        let subscription = self.pubsub.subscribers.entry(subscriber_id).or_insert_with(|| Subscription {
+            channels: HashSet::new(),
+            patterns: HashSet::new(),
+            message_queue: VecDeque::new(),
+        });
 
         for pattern in patterns {
             subscription.patterns.insert(pattern.clone());
-            self.pubsub.patterns.entry(pattern)
-                .or_default()
-                .insert(subscriber_id);
+            self.pubsub.patterns.entry(pattern).or_default().insert(subscriber_id);
         }
 
         Ok(())
@@ -759,7 +769,12 @@ impl KeyValueEngine {
         }
     }
 
-    async fn create_or_update_entry(&self, full_key: &str, value: Value, ttl: Option<u64>) -> Result<KeyValueEntry, KeyValueError> {
+    async fn create_or_update_entry(
+        &self,
+        full_key: &str,
+        value: Value,
+        ttl: Option<u64>,
+    ) -> Result<KeyValueEntry, KeyValueError> {
         let size_bytes = serde_json::to_string(&value)
             .map_err(|e| KeyValueError::SerializationError(e.to_string()))?
             .len();
@@ -825,7 +840,10 @@ impl KeyValueEngine {
     }
 
     async fn cleanup_expired_keys(&mut self) {
-        let expired_keys: Vec<String> = self.storage.entries.iter()
+        let expired_keys: Vec<String> = self
+            .storage
+            .entries
+            .iter()
             .filter(|(_, entry)| self.is_expired(entry))
             .map(|(key, _)| key.clone())
             .collect();
@@ -851,13 +869,22 @@ impl KeyValueEngine {
         }
     }
 
-    async fn execute_single_operation(&mut self, operation: KeyOperation, namespace: Option<&str>) -> Result<OperationResult, KeyValueError> {
+    async fn execute_single_operation(
+        &mut self,
+        operation: KeyOperation,
+        namespace: Option<&str>,
+    ) -> Result<OperationResult, KeyValueError> {
         let old_value = self.get(&operation.key, namespace).await?;
 
         match &operation.operation {
-            AtomicOperation::Set(_) | AtomicOperation::SetNX(_) | AtomicOperation::GetSet(_) |
-            AtomicOperation::Inc(_) | AtomicOperation::Dec(_) | AtomicOperation::Append(_) |
-            AtomicOperation::Prepend(_) | AtomicOperation::Push(_, _) => {
+            AtomicOperation::Set(_)
+            | AtomicOperation::SetNX(_)
+            | AtomicOperation::GetSet(_)
+            | AtomicOperation::Inc(_)
+            | AtomicOperation::Dec(_)
+            | AtomicOperation::Append(_)
+            | AtomicOperation::Prepend(_)
+            | AtomicOperation::Push(_, _) => {
                 let result = self.atomic_operation(&operation.key, operation.operation, namespace).await;
                 match result {
                     Ok(new_value) => Ok(OperationResult {
@@ -893,10 +920,10 @@ impl KeyValueEngine {
                         new_value: None,
                         error: Some(format!("{:?}", e)),
                     }),
+                }
             }
         }
     }
-}
 }
 
 impl Default for KeyValueEngine {
@@ -979,9 +1006,9 @@ impl Default for AtomicOperations {
     }
 }
 
+pub use AtomicOperation as AtomicOp;
 /// Export key-value engine components
 pub use KeyValueEngine as Engine;
 pub use KeyValueEntry as Entry;
-pub use AtomicOperation as AtomicOp;
 pub use KeyValueError as Error;
 pub use KeyValueStats as Stats;

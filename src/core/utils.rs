@@ -190,11 +190,7 @@ pub mod ml {
         // Simple feature extraction - character count, word count, etc.
         let char_count = text.chars().count() as f64;
         let word_count = text.split_whitespace().count() as f64;
-        let avg_word_length = if word_count > 0.0 {
-            char_count / word_count
-        } else {
-            0.0
-        };
+        let avg_word_length = if word_count > 0.0 { char_count / word_count } else { 0.0 };
 
         // Normalize features
         normalize_vector(&[char_count, word_count, avg_word_length])
@@ -420,10 +416,7 @@ pub mod text {
 
     /// Escape SQL string literal
     pub fn escape_sql_string(input: &str) -> String {
-        input
-            .replace('\\', "\\\\")
-            .replace('\'', "\\'")
-            .replace('\"', "\\\"")
+        input.replace('\\', "\\\\").replace('\'', "\\'").replace('\"', "\\\"")
     }
 
     /// Parse SQL-like WHERE clause (simplified)
@@ -504,24 +497,21 @@ pub mod text {
 pub mod perf {
     use std::time::Instant;
 
-/// Performance timer
-pub struct PerfTimer {
-    start: Instant,
-    checkpoints: Vec<(String, u128)>,
-}
-
-impl Default for PerfTimer {
-    fn default() -> Self {
-        Self::new()
+    /// Performance timer
+    pub struct PerfTimer {
+        start: Instant,
+        checkpoints: Vec<(String, u128)>,
     }
-}
 
-impl PerfTimer {
+    impl Default for PerfTimer {
+        fn default() -> Self {
+            Self::new()
+        }
+    }
+
+    impl PerfTimer {
         pub fn new() -> Self {
-            Self {
-                start: Instant::now(),
-                checkpoints: Vec::new(),
-            }
+            Self { start: Instant::now(), checkpoints: Vec::new() }
         }
 
         /// Add checkpoint
@@ -618,11 +608,12 @@ pub mod validation {
 
     /// Validate data type compatibility
     pub fn validate_data_type(value: &Value, expected_type: &DataType) -> bool {
-        matches!((value, expected_type),
-            (Value::String(_), DataType::String(_)) |
-            (Value::Number(_), DataType::Integer | DataType::BigInt | DataType::Float | DataType::Double) |
-            (Value::Bool(_), DataType::Boolean) |
-            (Value::Object(_), DataType::Json)
+        matches!(
+            (value, expected_type),
+            (Value::String(_), DataType::String(_))
+                | (Value::Number(_), DataType::Integer | DataType::BigInt | DataType::Float | DataType::Double)
+                | (Value::Bool(_), DataType::Boolean)
+                | (Value::Object(_), DataType::Json)
         )
     }
 
@@ -645,10 +636,10 @@ pub enum UtilsError {
 
 /// Export utility modules
 pub use crypto::*;
-pub use temporal::*;
-pub use ml::*;
-pub use json::*;
 pub use id::*;
-pub use text::*;
+pub use json::*;
+pub use ml::*;
 pub use perf::*;
+pub use temporal::*;
+pub use text::*;
 pub use validation::*;

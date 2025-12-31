@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-use std::collections::{HashMap, HashSet, BTreeMap};
+use serde_json::{Value, json};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use uuid::Uuid;
 
 /// AuroraDB Document Engine - Advanced NoSQL Document Operations
@@ -111,27 +111,11 @@ pub enum WriteConcern {
 /// Index types for document collections
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Index {
-    SingleField {
-        field: String,
-        unique: bool,
-        sparse: bool,
-    },
-    Compound {
-        fields: Vec<String>,
-        unique: bool,
-    },
-    Text {
-        fields: Vec<String>,
-        weights: HashMap<String, i32>,
-        default_language: String,
-    },
-    Geospatial {
-        field: String,
-        index_type: GeoIndexType,
-    },
-    Hashed {
-        field: String,
-    },
+    SingleField { field: String, unique: bool, sparse: bool },
+    Compound { fields: Vec<String>, unique: bool },
+    Text { fields: Vec<String>, weights: HashMap<String, i32>, default_language: String },
+    Geospatial { field: String, index_type: GeoIndexType },
+    Hashed { field: String },
 }
 
 /// Geospatial index types
@@ -167,7 +151,7 @@ pub struct DocumentQuery {
     pub collection: String,
     pub filter: HashMap<String, QueryOperator>,
     pub projection: Option<HashMap<String, i32>>, // 1 to include, 0 to exclude
-    pub sort: Option<HashMap<String, i32>>, // 1 ascending, -1 descending
+    pub sort: Option<HashMap<String, i32>>,       // 1 ascending, -1 descending
     pub limit: Option<usize>,
     pub skip: Option<usize>,
 }
@@ -176,21 +160,13 @@ pub struct DocumentQuery {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AggregationStage {
     Match(HashMap<String, QueryOperator>),
-    Group {
-        id: Value,
-        fields: HashMap<String, AggregationExpression>,
-    },
+    Group { id: Value, fields: HashMap<String, AggregationExpression> },
     Project(HashMap<String, ProjectionExpression>),
     Sort(HashMap<String, i32>),
     Limit(usize),
     Skip(usize),
     Unwind(String), // field path to unwind
-    Lookup {
-        from: String,
-        local_field: String,
-        foreign_field: String,
-        as_field: String,
-    },
+    Lookup { from: String, local_field: String, foreign_field: String, as_field: String },
 }
 
 /// Aggregation expressions
@@ -266,9 +242,7 @@ pub struct AggregationResult {
 fn execute_aggregation_stage(input: Vec<Value>, stage: &AggregationStage) -> Result<Vec<Value>, DocumentError> {
     match stage {
         AggregationStage::Match(filter) => {
-            Ok(input.into_iter()
-                .filter(|doc| matches_filter_simple(doc, filter))
-                .collect())
+            Ok(input.into_iter().filter(|doc| matches_filter_simple(doc, filter)).collect())
         }
         AggregationStage::Group { id, fields } => {
             // Simplified grouping - would need proper implementation
@@ -279,12 +253,8 @@ fn execute_aggregation_stage(input: Vec<Value>, stage: &AggregationStage) -> Res
             }
             Ok(vec![Value::Object(result)])
         }
-        AggregationStage::Limit(count) => {
-            Ok(input.into_iter().take(*count).collect())
-        }
-        AggregationStage::Skip(count) => {
-            Ok(input.into_iter().skip(*count).collect())
-        }
+        AggregationStage::Limit(count) => Ok(input.into_iter().take(*count).collect()),
+        AggregationStage::Skip(count) => Ok(input.into_iter().skip(*count).collect()),
         _ => Ok(input), // Other stages not implemented in simplified version
     }
 }
@@ -317,13 +287,8 @@ impl Default for DocumentEngine {
 }
 
 impl DocumentEngine {
-
     /// Create a new collection
-    pub async fn create_collection(
-        &mut self,
-        name: &str,
-        settings: CollectionSettings,
-    ) -> Result<(), DocumentError> {
+    pub async fn create_collection(&mut self, name: &str, settings: CollectionSettings) -> Result<(), DocumentError> {
         if self.collections.contains_key(name) {
             return Err(DocumentError::CollectionExists(name.to_string()));
         }
@@ -359,12 +324,10 @@ impl DocumentEngine {
     }
 
     /// Insert a document
-    pub async fn insert_document(
-        &mut self,
-        collection_name: &str,
-        document: Value,
-    ) -> Result<Uuid, DocumentError> {
-        let collection = self.collections.get(collection_name)
+    pub async fn insert_document(&mut self, collection_name: &str, document: Value) -> Result<Uuid, DocumentError> {
+        let collection = self
+            .collections
+            .get(collection_name)
             .ok_or_else(|| DocumentError::CollectionNotFound(collection_name.to_string()))?;
 
         // Validate document against schema if present
@@ -389,7 +352,9 @@ impl DocumentEngine {
             field_count: count_fields(&document),
             nested_levels: calculate_nested_levels(&document),
             tags: HashSet::new(),
-            expires_at: collection.settings.time_to_live
+            expires_at: collection
+                .settings
+                .time_to_live
                 .map(|ttl| now + chrono::Duration::seconds(ttl as i64)),
             owner: None,
         };
@@ -416,13 +381,12 @@ impl DocumentEngine {
     }
 
     /// Find documents by query
-    pub async fn find_documents(
-        &self,
-        query: &DocumentQuery,
-    ) -> Result<QueryResult, DocumentError> {
+    pub async fn find_documents(&self, query: &DocumentQuery) -> Result<QueryResult, DocumentError> {
         let start_time = std::time::Instant::now();
 
-        let _collection = self.collections.get(&query.collection)
+        let _collection = self
+            .collections
+            .get(&query.collection)
             .ok_or_else(|| DocumentError::CollectionNotFound(query.collection.clone()))?;
 
         // Use index if possible
@@ -433,7 +397,8 @@ impl DocumentEngine {
         if let Some(collection_docs) = self.storage.documents.get(&query.collection) {
             for (id, doc) in collection_docs {
                 if (candidate_ids.is_none() || candidate_ids.as_ref().unwrap().contains(id))
-                    && self.matches_filter(&doc.data, &query.filter) {
+                    && self.matches_filter(&doc.data, &query.filter)
+                {
                     results.push(doc.clone());
                 }
             }
@@ -448,10 +413,7 @@ impl DocumentEngine {
         let total_count = results.len();
         let start = query.skip.unwrap_or(0);
         let end = start + query.limit.unwrap_or(total_count);
-        let paginated_results = results.into_iter()
-            .skip(start)
-            .take(end - start)
-            .collect();
+        let paginated_results = results.into_iter().skip(start).take(end - start).collect();
 
         let execution_time = start_time.elapsed().as_millis() as u64;
 
@@ -470,7 +432,9 @@ impl DocumentEngine {
         filter: &HashMap<String, QueryOperator>,
         update: &DocumentUpdate,
     ) -> Result<usize, DocumentError> {
-        let _collection = self.collections.get(collection_name)
+        let _collection = self
+            .collections
+            .get(collection_name)
             .ok_or_else(|| DocumentError::CollectionNotFound(collection_name.to_string()))?;
 
         let mut updated_count = 0;
@@ -579,7 +543,9 @@ impl DocumentEngine {
         index_name: &str,
         index: Index,
     ) -> Result<(), DocumentError> {
-        let collection = self.collections.get_mut(collection_name)
+        let collection = self
+            .collections
+            .get_mut(collection_name)
             .ok_or_else(|| DocumentError::CollectionNotFound(collection_name.to_string()))?;
 
         collection.indexes.insert(index_name.to_string(), index.clone());
@@ -587,7 +553,8 @@ impl DocumentEngine {
         // Build index for existing documents
         if let Some(docs) = self.storage.documents.get(collection_name) {
             for (id, doc) in docs {
-                self.indexer.build_index_for_document(collection_name, index_name, &index, id, &doc.data)?;
+                self.indexer
+                    .build_index_for_document(collection_name, index_name, &index, id, &doc.data)?;
             }
         }
 
@@ -695,7 +662,11 @@ fn apply_update_simple(document: &mut Value, update: &DocumentUpdate) {
                     // Simple increment operation
                     if let Value::Number(inc) = increment {
                         if let Some(inc_f64) = inc.as_f64() {
-                            set_field_value(obj, field, Value::Number(serde_json::Number::from_f64(inc_f64).unwrap_or(inc.clone())));
+                            set_field_value(
+                                obj,
+                                field,
+                                Value::Number(serde_json::Number::from_f64(inc_f64).unwrap_or(inc.clone())),
+                            );
                         }
                     }
                 }
@@ -732,10 +703,7 @@ impl Default for DocumentStorage {
 /// Document indexer implementation
 impl DocumentIndexer {
     pub fn new() -> Self {
-        Self {
-            indexes: HashMap::new(),
-            text_indexes: HashMap::new(),
-        }
+        Self { indexes: HashMap::new(), text_indexes: HashMap::new() }
     }
 }
 
@@ -796,9 +764,7 @@ impl DocumentIndexer {
 /// Schema validator implementation
 impl SchemaValidator {
     pub fn new() -> Self {
-        Self {
-            strict_validation: true,
-        }
+        Self { strict_validation: true }
     }
 }
 
@@ -902,9 +868,7 @@ fn compare_documents(a: &Document, b: &Document, sort_spec: &HashMap<String, i32
 fn compare_values(a: Option<&Value>, b: Option<&Value>) -> Option<std::cmp::Ordering> {
     match (a, b) {
         (Some(Value::String(s1)), Some(Value::String(s2))) => Some(s1.cmp(s2)),
-        (Some(Value::Number(n1)), Some(Value::Number(n2))) => {
-            n1.as_f64().partial_cmp(&n2.as_f64())
-        }
+        (Some(Value::Number(n1)), Some(Value::Number(n2))) => n1.as_f64().partial_cmp(&n2.as_f64()),
         (Some(Value::Bool(b1)), Some(Value::Bool(b2))) => Some(b1.cmp(b2)),
         _ => None,
     }
@@ -912,14 +876,15 @@ fn compare_values(a: Option<&Value>, b: Option<&Value>) -> Option<std::cmp::Orde
 
 /// Check if value matches field type
 fn matches_field_type(value: Option<&Value>, field_type: &FieldType) -> bool {
-    matches!((value, field_type),
-        (Some(Value::String(_)), FieldType::String) |
-        (Some(Value::Number(_)), FieldType::Number) |
-        (Some(Value::Bool(_)), FieldType::Boolean) |
-        (Some(Value::Object(_)), FieldType::Object) |
-        (Some(Value::Array(_)), FieldType::Array) |
-        (Some(Value::Null), FieldType::Null) |
-        (Some(_), FieldType::Any)
+    matches!(
+        (value, field_type),
+        (Some(Value::String(_)), FieldType::String)
+            | (Some(Value::Number(_)), FieldType::Number)
+            | (Some(Value::Bool(_)), FieldType::Boolean)
+            | (Some(Value::Object(_)), FieldType::Object)
+            | (Some(Value::Array(_)), FieldType::Array)
+            | (Some(Value::Null), FieldType::Null)
+            | (Some(_), FieldType::Any)
     )
 }
 
@@ -940,6 +905,6 @@ pub enum DocumentError {
 
 /// Export document engine components
 pub use DocumentEngine as Engine;
+pub use DocumentError as Error;
 pub use DocumentQuery as Query;
 pub use DocumentUpdate as Update;
-pub use DocumentError as Error;

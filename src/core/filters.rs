@@ -23,37 +23,17 @@ pub enum FilterExpression {
         right: Box<FilterExpression>,
     },
     /// Unary operations (NOT, IS NULL, etc.)
-    Unary {
-        operator: UnaryOperator,
-        operand: Box<FilterExpression>,
-    },
+    Unary { operator: UnaryOperator, operand: Box<FilterExpression> },
     /// Function calls
-    Function {
-        name: String,
-        arguments: Vec<FilterExpression>,
-    },
+    Function { name: String, arguments: Vec<FilterExpression> },
     /// IN expressions
-    In {
-        column: String,
-        values: Vec<FilterExpression>,
-    },
+    In { column: String, values: Vec<FilterExpression> },
     /// BETWEEN expressions
-    Between {
-        column: String,
-        min: Box<FilterExpression>,
-        max: Box<FilterExpression>,
-    },
+    Between { column: String, min: Box<FilterExpression>, max: Box<FilterExpression> },
     /// LIKE expressions
-    Like {
-        column: String,
-        pattern: String,
-    },
+    Like { column: String, pattern: String },
     /// Temporal expressions
-    Temporal {
-        column: String,
-        operator: TemporalOperator,
-        timestamp: u64,
-    },
+    Temporal { column: String, operator: TemporalOperator, timestamp: u64 },
 }
 
 /// Binary Operators for Filter Expressions
@@ -210,10 +190,8 @@ impl FilterEngine {
 
                     // Evaluate filter against context
                     if self.evaluate_filter(&filter.filter_expression, context).await? {
-                        combined_filter = Some(self.combine_filters(
-                            combined_filter,
-                            Some(filter.filter_expression.clone()),
-                        ));
+                        combined_filter =
+                            Some(self.combine_filters(combined_filter, Some(filter.filter_expression.clone())));
                     }
                 }
             }
@@ -283,8 +261,12 @@ impl FilterEngine {
     ) -> Result<bool, FilterError> {
         match expression {
             FilterExpression::Boolean(value) => Ok(*value),
-            FilterExpression::String(_) => Err(FilterError::InvalidExpression("String literals cannot be evaluated as boolean".to_string())),
-            FilterExpression::Number(_) => Err(FilterError::InvalidExpression("Numeric literals cannot be evaluated as boolean".to_string())),
+            FilterExpression::String(_) => {
+                Err(FilterError::InvalidExpression("String literals cannot be evaluated as boolean".to_string()))
+            }
+            FilterExpression::Number(_) => {
+                Err(FilterError::InvalidExpression("Numeric literals cannot be evaluated as boolean".to_string()))
+            }
             FilterExpression::Column(column) => self.evaluate_column_access(column, context),
             FilterExpression::Binary { left, operator, right } => {
                 let left_result = self.evaluate_expression_sync(left, context)?;
@@ -305,15 +287,11 @@ impl FilterEngine {
                     _ => Err(FilterError::UnknownFunction(name.to_string())),
                 }
             }
-            FilterExpression::In { column, values } => {
-                self.evaluate_in_expression_sync(column, values, context)
-            }
+            FilterExpression::In { column, values } => self.evaluate_in_expression_sync(column, values, context),
             FilterExpression::Between { column, min, max } => {
                 self.evaluate_between_expression_sync(column, min, max, context)
             }
-            FilterExpression::Like { column, pattern } => {
-                self.evaluate_like_expression(column, pattern, context)
-            }
+            FilterExpression::Like { column, pattern } => self.evaluate_like_expression(column, pattern, context),
             FilterExpression::Temporal { column, operator, timestamp } => {
                 self.evaluate_temporal_expression(column, *operator, *timestamp, context)
             }
@@ -334,13 +312,21 @@ impl FilterEngine {
     }
 
     /// Evaluate Binary Operations
-    fn evaluate_binary_operation(&self, left: bool, operator: BinaryOperator, right: bool) -> Result<bool, FilterError> {
+    fn evaluate_binary_operation(
+        &self,
+        left: bool,
+        operator: BinaryOperator,
+        right: bool,
+    ) -> Result<bool, FilterError> {
         match operator {
             BinaryOperator::And => Ok(left && right),
             BinaryOperator::Or => Ok(left || right),
             BinaryOperator::Equal => Ok(left == right),
             BinaryOperator::NotEqual => Ok(left != right),
-            _ => Err(FilterError::UnsupportedOperation(format!("Binary operator {:?} not supported for boolean operands", operator))),
+            _ => Err(FilterError::UnsupportedOperation(format!(
+                "Binary operator {:?} not supported for boolean operands",
+                operator
+            ))),
         }
     }
 
@@ -352,7 +338,6 @@ impl FilterEngine {
             UnaryOperator::IsNotNull => Ok(operand),
         }
     }
-
 
     /// Evaluate IN Expressions
     fn evaluate_in_expression_sync(
@@ -378,7 +363,12 @@ impl FilterEngine {
     }
 
     /// Evaluate LIKE Expressions
-    fn evaluate_like_expression(&self, _column: &str, _pattern: &str, _context: &FilterContext) -> Result<bool, FilterError> {
+    fn evaluate_like_expression(
+        &self,
+        _column: &str,
+        _pattern: &str,
+        _context: &FilterContext,
+    ) -> Result<bool, FilterError> {
         // Placeholder implementation
         Ok(true)
     }
@@ -430,7 +420,11 @@ impl FilterEngine {
     }
 
     /// Combine Multiple Filters
-    fn combine_filters(&self, filter1: Option<FilterExpression>, filter2: Option<FilterExpression>) -> FilterExpression {
+    fn combine_filters(
+        &self,
+        filter1: Option<FilterExpression>,
+        filter2: Option<FilterExpression>,
+    ) -> FilterExpression {
         match (filter1, filter2) {
             (Some(f1), Some(f2)) => FilterExpression::Binary {
                 left: Box::new(f1),
@@ -448,7 +442,11 @@ impl FilterEngine {
     }
 
     /// Evaluate has_role() Function
-    fn evaluate_has_role_function(&self, arguments: &[FilterExpression], context: &FilterContext) -> Result<bool, FilterError> {
+    fn evaluate_has_role_function(
+        &self,
+        arguments: &[FilterExpression],
+        context: &FilterContext,
+    ) -> Result<bool, FilterError> {
         if let Some(FilterExpression::String(role_name)) = arguments.first() {
             Ok(context.roles.contains(role_name))
         } else {
@@ -457,7 +455,11 @@ impl FilterEngine {
     }
 
     /// Evaluate has_permission() Function
-    fn evaluate_has_permission_function(&self, arguments: &[FilterExpression], context: &FilterContext) -> Result<bool, FilterError> {
+    fn evaluate_has_permission_function(
+        &self,
+        arguments: &[FilterExpression],
+        context: &FilterContext,
+    ) -> Result<bool, FilterError> {
         if let Some(FilterExpression::String(permission)) = arguments.first() {
             Ok(context.permissions.contains(permission))
         } else {
@@ -466,7 +468,11 @@ impl FilterEngine {
     }
 
     /// Evaluate in_tenant() Function
-    fn evaluate_in_tenant_function(&self, arguments: &[FilterExpression], context: &FilterContext) -> Result<bool, FilterError> {
+    fn evaluate_in_tenant_function(
+        &self,
+        arguments: &[FilterExpression],
+        context: &FilterContext,
+    ) -> Result<bool, FilterError> {
         if let Some(FilterExpression::String(_tenant_name)) = arguments.first() {
             // Placeholder: would check if current tenant matches
             Ok(context.tenant_id.is_some())
@@ -492,10 +498,7 @@ impl FilterBuilder {
     }
 
     /// Create Row-Level Security Filter
-    pub fn create_rls_filter(
-        table_name: &str,
-        expression: FilterExpression,
-    ) -> RowLevelSecurityFilter {
+    pub fn create_rls_filter(table_name: &str, expression: FilterExpression) -> RowLevelSecurityFilter {
         RowLevelSecurityFilter {
             table_name: table_name.to_string(),
             filter_expression: expression,
@@ -511,11 +514,7 @@ impl FilterBuilder {
         expression: FilterExpression,
         priority: i32,
     ) -> SecurityFilter {
-        SecurityFilter {
-            filter_type,
-            expression,
-            priority,
-        }
+        SecurityFilter { filter_type, expression, priority }
     }
 }
 
@@ -577,10 +576,7 @@ pub struct FilterCache {
 
 impl FilterCache {
     pub fn new(max_size: usize) -> Self {
-        Self {
-            cache: HashMap::new(),
-            max_size,
-        }
+        Self { cache: HashMap::new(), max_size }
     }
 
     /// Get Cached Filter Result
@@ -605,8 +601,8 @@ impl FilterCache {
     }
 }
 
+pub use FilterBuilder as Builder;
+pub use FilterCache as Cache;
 /// Export Filter Engine Components
 pub use FilterEngine as Engine;
-pub use FilterBuilder as Builder;
 pub use FilterOptimizer as Optimizer;
-pub use FilterCache as Cache;

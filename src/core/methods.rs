@@ -200,7 +200,9 @@ impl AuroraDB {
         let result = self.query_engine.executor.execute(&secured_plan).await?;
 
         // Collect metrics
-        self.metrics_collector.performance_metrics.record_query_execution(query, &result);
+        self.metrics_collector
+            .performance_metrics
+            .record_query_execution(query, &result);
 
         Ok(result)
     }
@@ -211,8 +213,11 @@ impl AuroraDB {
         *TEMPORAL_TIMESTAMP.write().unwrap() = Some(timestamp);
 
         // Process temporal query
-        let temporal_result = self.temporal_engine.time_travel_processor
-            .process_temporal_query(query, timestamp).await?;
+        let temporal_result = self
+            .temporal_engine
+            .time_travel_processor
+            .process_temporal_query(query, timestamp)
+            .await?;
 
         // Reset temporal context
         *TEMPORAL_TIMESTAMP.write().unwrap() = None;
@@ -226,8 +231,11 @@ impl AuroraDB {
         *DOCUMENT_MODE.write().unwrap() = true;
 
         // Execute document query
-        let result = self.document_engine.json_processor
-            .execute_document_query(collection, query).await?;
+        let result = self
+            .document_engine
+            .json_processor
+            .execute_document_query(collection, query)
+            .await?;
 
         // Reset document mode
         *DOCUMENT_MODE.write().unwrap() = false;
@@ -236,7 +244,12 @@ impl AuroraDB {
     }
 
     /// Execute Hybrid Query (Relational + Document)
-    pub async fn execute_hybrid_query(&self, sql_query: &str, doc_query: Value, _context: &QueryContext) -> QueryResult {
+    pub async fn execute_hybrid_query(
+        &self,
+        sql_query: &str,
+        doc_query: Value,
+        _context: &QueryContext,
+    ) -> QueryResult {
         // Enable hybrid mode
         *HYBRID_MODE.write().unwrap() = true;
 
@@ -250,7 +263,12 @@ impl AuroraDB {
     }
 
     /// Execute AI/ML Prediction Query
-    pub async fn execute_prediction_query(&self, model_name: &str, input_data: Value, _context: &QueryContext) -> QueryResult {
+    pub async fn execute_prediction_query(
+        &self,
+        model_name: &str,
+        input_data: Value,
+        _context: &QueryContext,
+    ) -> QueryResult {
         // Set active ML model
         *ACTIVE_ML_MODEL.write().unwrap() = Some(model_name.to_string());
 
@@ -264,7 +282,12 @@ impl AuroraDB {
     }
 
     /// Execute Graph Traversal Query
-    pub async fn execute_graph_query(&self, graph_query: &str, algorithm: GraphAlgorithm, _context: &QueryContext) -> QueryResult {
+    pub async fn execute_graph_query(
+        &self,
+        graph_query: &str,
+        algorithm: GraphAlgorithm,
+        _context: &QueryContext,
+    ) -> QueryResult {
         // Set graph algorithm
         *GRAPH_ALGORITHM.write().unwrap() = algorithm;
 
@@ -278,7 +301,12 @@ impl AuroraDB {
     }
 
     /// Execute Streaming Query with Windowing
-    pub async fn execute_streaming_query(&self, stream_query: &str, window_config: &str, _context: &QueryContext) -> QueryResult {
+    pub async fn execute_streaming_query(
+        &self,
+        stream_query: &str,
+        window_config: &str,
+        _context: &QueryContext,
+    ) -> QueryResult {
         // Set streaming window
         *STREAM_WINDOW.write().unwrap() = Some(window_config.to_string());
 
@@ -292,7 +320,11 @@ impl AuroraDB {
     }
 
     /// Begin Transaction with Advanced Features
-    pub async fn begin_transaction(&self, isolation_level: TransactionIsolationLevel, _context: &QueryContext) -> Result<TxId, AuroraError> {
+    pub async fn begin_transaction(
+        &self,
+        isolation_level: TransactionIsolationLevel,
+        _context: &QueryContext,
+    ) -> Result<TxId, AuroraError> {
         // Generate transaction ID
         let tx_id = self.generate_transaction_id();
 
@@ -376,22 +408,28 @@ impl AuroraDB {
         *QUANTUM_ALGORITHM.write().unwrap() = algorithm;
 
         // Perform encryption
-        let encrypted_data = self.security_engine.crypto_processor
-            .encrypt_with_quantum_safe(data, algorithm).await?;
+        let encrypted_data = self
+            .security_engine
+            .crypto_processor
+            .encrypt_with_quantum_safe(data, algorithm)
+            .await?;
 
         Ok(encrypted_data)
     }
 
     /// Decrypt Data
     pub async fn decrypt_data(&self, encrypted_data: &[u8]) -> Result<Vec<u8>, AuroraError> {
-        let decrypted_data = self.security_engine.crypto_processor
-            .decrypt_data(encrypted_data).await?;
+        let decrypted_data = self.security_engine.crypto_processor.decrypt_data(encrypted_data).await?;
 
         Ok(decrypted_data)
     }
 
     /// Process Blockchain Transaction
-    pub async fn process_blockchain_transaction(&self, transaction_data: Value, consensus: ConsensusType) -> Result<String, AuroraError> {
+    pub async fn process_blockchain_transaction(
+        &self,
+        transaction_data: Value,
+        consensus: ConsensusType,
+    ) -> Result<String, AuroraError> {
         // Set consensus type
         *CONSENSUS_TYPE.write().unwrap() = consensus;
 
@@ -402,7 +440,11 @@ impl AuroraDB {
     }
 
     /// Execute Federated Learning Round
-    pub async fn execute_federated_learning(&self, model_updates: Vec<Value>, aggregation: AggregationMethod) -> Result<Value, AuroraError> {
+    pub async fn execute_federated_learning(
+        &self,
+        model_updates: Vec<Value>,
+        aggregation: AggregationMethod,
+    ) -> Result<Value, AuroraError> {
         // Set aggregation method
         *AGGREGATION_METHOD.write().unwrap() = aggregation;
 
@@ -517,13 +559,21 @@ impl AuroraDB {
     }
 
     /// Process Blockchain Operation
-    async fn process_blockchain_operation(&self, _transaction_data: Value, _consensus: ConsensusType) -> Result<String, AuroraError> {
+    async fn process_blockchain_operation(
+        &self,
+        _transaction_data: Value,
+        _consensus: ConsensusType,
+    ) -> Result<String, AuroraError> {
         // Implementation for blockchain operations
         Ok("transaction_hash".to_string())
     }
 
     /// Perform Federated Aggregation
-    async fn perform_federated_aggregation(&self, _model_updates: Vec<Value>, _aggregation: AggregationMethod) -> Result<Value, AuroraError> {
+    async fn perform_federated_aggregation(
+        &self,
+        _model_updates: Vec<Value>,
+        _aggregation: AggregationMethod,
+    ) -> Result<Value, AuroraError> {
         // Implementation for federated learning
         Ok(Value::Null)
     }
@@ -560,7 +610,9 @@ pub struct QueryPlan {
 /// Placeholder Implementations for Engine Components
 pub struct SQLParser;
 impl SQLParser {
-    pub fn new() -> Self { SQLParser }
+    pub fn new() -> Self {
+        SQLParser
+    }
     pub fn parse(&self, _query: &str) -> Result<QueryPlan, AuroraError> {
         Ok(QueryPlan {
             operations: vec!["parse".to_string()],
@@ -577,7 +629,9 @@ impl Default for SQLParser {
 
 pub struct QueryOptimizer;
 impl QueryOptimizer {
-    pub fn new() -> Self { QueryOptimizer }
+    pub fn new() -> Self {
+        QueryOptimizer
+    }
     pub fn optimize(&self, _plan: &QueryPlan) -> Result<QueryPlan, AuroraError> {
         Ok(QueryPlan {
             operations: vec!["optimize".to_string()],
@@ -594,7 +648,9 @@ impl Default for QueryOptimizer {
 
 pub struct QueryExecutor;
 impl QueryExecutor {
-    pub fn new() -> Self { QueryExecutor }
+    pub fn new() -> Self {
+        QueryExecutor
+    }
     pub async fn execute(&self, _plan: &QueryPlan) -> QueryResult {
         Ok(Vec::new())
     }
@@ -607,7 +663,9 @@ impl Default for QueryExecutor {
 
 pub struct VersionManager;
 impl VersionManager {
-    pub fn new() -> Self { VersionManager }
+    pub fn new() -> Self {
+        VersionManager
+    }
 }
 impl Default for VersionManager {
     fn default() -> Self {
@@ -617,7 +675,9 @@ impl Default for VersionManager {
 
 pub struct TimeTravelProcessor;
 impl TimeTravelProcessor {
-    pub fn new() -> Self { TimeTravelProcessor }
+    pub fn new() -> Self {
+        TimeTravelProcessor
+    }
     pub async fn process_temporal_query(&self, _query: &str, _timestamp: u64) -> QueryResult {
         Ok(Vec::new())
     }
@@ -630,7 +690,9 @@ impl Default for TimeTravelProcessor {
 
 pub struct JSONProcessor;
 impl JSONProcessor {
-    pub fn new() -> Self { JSONProcessor }
+    pub fn new() -> Self {
+        JSONProcessor
+    }
     pub async fn execute_document_query(&self, _collection: &str, _query: Value) -> QueryResult {
         Ok(Vec::new())
     }
@@ -643,7 +705,9 @@ impl Default for JSONProcessor {
 
 pub struct CollectionManager;
 impl CollectionManager {
-    pub fn new() -> Self { CollectionManager }
+    pub fn new() -> Self {
+        CollectionManager
+    }
 }
 impl Default for CollectionManager {
     fn default() -> Self {
@@ -653,7 +717,9 @@ impl Default for CollectionManager {
 
 pub struct AuthManager;
 impl AuthManager {
-    pub fn new() -> Self { AuthManager }
+    pub fn new() -> Self {
+        AuthManager
+    }
     pub async fn authenticate(&self, _username: &str, _credentials: &str) -> Result<UserContext, AuroraError> {
         Ok(UserContext {
             user_id: Uuid::new_v4(),
@@ -673,8 +739,14 @@ impl Default for AuthManager {
 
 pub struct CryptoProcessor;
 impl CryptoProcessor {
-    pub fn new() -> Self { CryptoProcessor }
-    pub async fn encrypt_with_quantum_safe(&self, _data: &[u8], _algorithm: QuantumAlgorithm) -> Result<Vec<u8>, AuroraError> {
+    pub fn new() -> Self {
+        CryptoProcessor
+    }
+    pub async fn encrypt_with_quantum_safe(
+        &self,
+        _data: &[u8],
+        _algorithm: QuantumAlgorithm,
+    ) -> Result<Vec<u8>, AuroraError> {
         Ok(vec![1, 2, 3, 4])
     }
     pub async fn decrypt_data(&self, _encrypted_data: &[u8]) -> Result<Vec<u8>, AuroraError> {
@@ -689,11 +761,15 @@ impl Default for CryptoProcessor {
 
 pub struct PerformanceMetrics;
 impl PerformanceMetrics {
-    pub fn new() -> Self { PerformanceMetrics }
+    pub fn new() -> Self {
+        PerformanceMetrics
+    }
     pub fn record_query_execution(&self, _query: &str, _result: &[HashMap<String, Value>]) {}
 }
 impl Clone for PerformanceMetrics {
-    fn clone(&self) -> Self { PerformanceMetrics }
+    fn clone(&self) -> Self {
+        PerformanceMetrics
+    }
 }
 impl Default for PerformanceMetrics {
     fn default() -> Self {
@@ -703,7 +779,9 @@ impl Default for PerformanceMetrics {
 
 pub struct HealthMonitor;
 impl HealthMonitor {
-    pub fn new() -> Self { HealthMonitor }
+    pub fn new() -> Self {
+        HealthMonitor
+    }
 }
 impl Default for HealthMonitor {
     fn default() -> Self {
@@ -733,7 +811,7 @@ pub async fn shutdown_engine() -> Result<(), AuroraError> {
 pub fn get_system_status() -> SystemStatus {
     SystemStatus {
         health: *HEALTH_STATUS.read().unwrap(),
-        active_connections: 0, // Would be populated from actual connection pool
+        active_connections: 0,     // Would be populated from actual connection pool
         total_queries_executed: 0, // Would be populated from metrics
         uptime_seconds: (Utc::now().timestamp() as u64).saturating_sub(*START_TIMESTAMP / 1000),
     }
