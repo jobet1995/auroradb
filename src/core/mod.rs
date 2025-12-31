@@ -1,3 +1,4 @@
+pub mod audit;
 pub mod document;
 pub mod filters;
 pub mod graph;
