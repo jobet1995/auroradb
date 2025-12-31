@@ -4,6 +4,7 @@ pub mod document;
 pub mod filters;
 pub mod frame;
 pub mod graph;
+pub mod hierarchy;
 pub mod key_value;
 pub mod methods;
 pub mod security;
