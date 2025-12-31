@@ -1,4 +1,5 @@
 pub mod audit;
+pub mod contract;
 pub mod document;
 pub mod filters;
 pub mod graph;
