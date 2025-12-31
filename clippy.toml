@@ -1,0 +1,22 @@
+# Clippy configuration for AuroraDB
+# A next-generation, memory-safe, temporal database engine
+
+# Complexity limits suitable for a sophisticated database engine
+cognitive-complexity-threshold = 25
+
+# Array size limits
+array-size-threshold = 512
+
+# Documentation
+doc-valid-idents = ["AuroraDB", "SQL", "JSON", "JWT", "UUID", "API", "CLI", "GUI"]
+
+# MSRV - minimum supported Rust version
+msrv = "1.70.0"
+
+# Allow unwraps in tests
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-print-in-tests = true
+
+# Allow indexing in tests
+allow-indexing-slicing-in-tests = true

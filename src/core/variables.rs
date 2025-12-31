@@ -1,7 +1,11 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json;
-use std::{collections::{BTreeMap, HashMap}, sync::atomic::AtomicBool, time::Duration};
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::atomic::AtomicBool,
+    time::Duration,
+};
 use uuid::Uuid;
 
 /// Database version and metadata constants
@@ -397,7 +401,7 @@ pub enum DataType {
     Decimal(u8, u8), // precision, scale
     String(usize),   // max length
     Text,
-    Binary(usize),   // max size
+    Binary(usize), // max size
     Date,
     Time,
     DateTime,
@@ -887,110 +891,187 @@ pub type DatabaseResult<T> = Result<T, DatabaseError>;
 
 /// Common SQL keywords and operators
 pub const SQL_KEYWORDS: &[&str] = &[
-    "SELECT", "FROM", "WHERE", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER",
-    "TABLE", "INDEX", "VIEW", "TRIGGER", "FUNCTION", "PROCEDURE", "BEGIN", "COMMIT",
-    "ROLLBACK", "SAVEPOINT", "PRIMARY", "FOREIGN", "KEY", "UNIQUE", "NOT", "NULL",
-    "DEFAULT", "CHECK", "REFERENCES", "CASCADE", "RESTRICT", "JOIN", "INNER", "LEFT",
-    "RIGHT", "FULL", "OUTER", "ON", "GROUP", "BY", "HAVING", "ORDER", "LIMIT", "OFFSET",
-    "UNION", "ALL", "DISTINCT", "AS", "AND", "OR", "IN", "EXISTS", "LIKE", "BETWEEN",
-    "IS", "TRUE", "FALSE", "UNKNOWN",
+    "SELECT", "FROM", "WHERE", "INSERT", "UPDATE", "DELETE", "CREATE", "DROP", "ALTER", "TABLE", "INDEX", "VIEW",
+    "TRIGGER", "FUNCTION", "PROCEDURE", "BEGIN", "COMMIT", "ROLLBACK", "SAVEPOINT", "PRIMARY", "FOREIGN", "KEY",
+    "UNIQUE", "NOT", "NULL", "DEFAULT", "CHECK", "REFERENCES", "CASCADE", "RESTRICT", "JOIN", "INNER", "LEFT", "RIGHT",
+    "FULL", "OUTER", "ON", "GROUP", "BY", "HAVING", "ORDER", "LIMIT", "OFFSET", "UNION", "ALL", "DISTINCT", "AS",
+    "AND", "OR", "IN", "EXISTS", "LIKE", "BETWEEN", "IS", "TRUE", "FALSE", "UNKNOWN",
 ];
 
 /// AuroraDB-specific SQL keywords for advanced features
 pub const AURORADB_KEYWORDS: &[&str] = &[
     // Temporal/Time-travel keywords
-    "AS_OF", "VALID_FROM", "VALID_TO", "TEMPORAL", "TIME_TRAVEL", "VERSION_HISTORY",
-
+    "AS_OF",
+    "VALID_FROM",
+    "VALID_TO",
+    "TEMPORAL",
+    "TIME_TRAVEL",
+    "VERSION_HISTORY",
     // Document/JSON keywords
-    "DOCUMENT", "COLLECTION", "JSON_EXTRACT", "JSON_SET", "JSON_ARRAY", "JSON_OBJECT",
-    "UNNEST", "FLATTEN", "NEST",
-
+    "DOCUMENT",
+    "COLLECTION",
+    "JSON_EXTRACT",
+    "JSON_SET",
+    "JSON_ARRAY",
+    "JSON_OBJECT",
+    "UNNEST",
+    "FLATTEN",
+    "NEST",
     // Graph/Traversal keywords
-    "GRAPH", "NODE", "EDGE", "PATH", "SHORTEST_PATH", "TRAVERSE", "CONNECTED_BY",
-
+    "GRAPH",
+    "NODE",
+    "EDGE",
+    "PATH",
+    "SHORTEST_PATH",
+    "TRAVERSE",
+    "CONNECTED_BY",
     // Real-time/Streaming keywords
-    "STREAM", "WINDOW", "TUMBLING", "SLIDING", "HOPPING", "EMIT", "CHANGE_STREAM",
-
+    "STREAM",
+    "WINDOW",
+    "TUMBLING",
+    "SLIDING",
+    "HOPPING",
+    "EMIT",
+    "CHANGE_STREAM",
     // Machine Learning/AI keywords
-    "PREDICT", "TRAIN", "MODEL", "FEATURE", "CLUSTER", "CLASSIFY", "ANOMALY_DETECT",
-
+    "PREDICT",
+    "TRAIN",
+    "MODEL",
+    "FEATURE",
+    "CLUSTER",
+    "CLASSIFY",
+    "ANOMALY_DETECT",
     // Security/Access Control keywords
-    "GRANT_TENANT", "REVOKE_TENANT", "ROW_POLICY", "MASK", "ENCRYPT", "DECRYPT",
-
+    "GRANT_TENANT",
+    "REVOKE_TENANT",
+    "ROW_POLICY",
+    "MASK",
+    "ENCRYPT",
+    "DECRYPT",
     // Multi-tenant keywords
-    "TENANT", "ISOLATE", "SHARE_SCHEMA", "TENANT_CONTEXT",
-
+    "TENANT",
+    "ISOLATE",
+    "SHARE_SCHEMA",
+    "TENANT_CONTEXT",
     // Performance/Monitoring keywords
-    "ANALYZE_QUERY", "EXPLAIN_PLAN", "PROFILE", "TRACE_QUERY", "METRICS",
-
+    "ANALYZE_QUERY",
+    "EXPLAIN_PLAN",
+    "PROFILE",
+    "TRACE_QUERY",
+    "METRICS",
     // Hybrid operations
-    "RELATIONAL_TO_DOCUMENT", "DOCUMENT_TO_RELATIONAL", "HYBRID_JOIN",
-
+    "RELATIONAL_TO_DOCUMENT",
+    "DOCUMENT_TO_RELATIONAL",
+    "HYBRID_JOIN",
     // Quantum-resistant cryptography
-    "QUANTUM_SAFE", "POST_QUANTUM", "CRYSTALS_KYBER", "DILITHIUM", "FALCON",
-
+    "QUANTUM_SAFE",
+    "POST_QUANTUM",
+    "CRYSTALS_KYBER",
+    "DILITHIUM",
+    "FALCON",
     // Blockchain integration
-    "BLOCKCHAIN", "LEDGER", "IMMUTABLE_CHAIN", "PROOF_OF_WORK", "SMART_CONTRACT",
-
+    "BLOCKCHAIN",
+    "LEDGER",
+    "IMMUTABLE_CHAIN",
+    "PROOF_OF_WORK",
+    "SMART_CONTRACT",
     // Edge computing
-    "EDGE_COMPUTE", "FOG_PROCESSING", "DISTRIBUTED_EXEC", "LOCAL_CACHE", "EDGE_SYNC",
-
+    "EDGE_COMPUTE",
+    "FOG_PROCESSING",
+    "DISTRIBUTED_EXEC",
+    "LOCAL_CACHE",
+    "EDGE_SYNC",
     // Natural language processing
-    "SEMANTIC_SEARCH", "NLP_QUERY", "TEXT_ANALYZE", "LANGUAGE_MODEL", "VECTOR_SEARCH",
-
+    "SEMANTIC_SEARCH",
+    "NLP_QUERY",
+    "TEXT_ANALYZE",
+    "LANGUAGE_MODEL",
+    "VECTOR_SEARCH",
     // Data governance and lineage
-    "DATA_LINEAGE", "GOVERNANCE", "COMPLIANCE_CHECK", "AUDIT_TRAIL", "DATA_STEWARD",
-
+    "DATA_LINEAGE",
+    "GOVERNANCE",
+    "COMPLIANCE_CHECK",
+    "AUDIT_TRAIL",
+    "DATA_STEWARD",
     // Predictive analytics
-    "FORECAST", "TREND_ANALYZE", "PREDICTIVE_MODEL", "TIME_SERIES", "ANOMALY_PREDICT",
-
+    "FORECAST",
+    "TREND_ANALYZE",
+    "PREDICTIVE_MODEL",
+    "TIME_SERIES",
+    "ANOMALY_PREDICT",
     // Collaborative features
-    "COLLABORATE", "CONFLICT_RESOLVE", "VERSION_MERGE", "COLLAB_EDIT", "SHARED_SCHEMA",
-
+    "COLLABORATE",
+    "CONFLICT_RESOLVE",
+    "VERSION_MERGE",
+    "COLLAB_EDIT",
+    "SHARED_SCHEMA",
     // Spatial-temporal fusion
-    "SPATIO_TEMPORAL", "GEOSPATIAL_TIME", "LOCATION_TRACK", "MOVEMENT_PATTERN", "GEO_FENCE",
-
+    "SPATIO_TEMPORAL",
+    "GEOSPATIAL_TIME",
+    "LOCATION_TRACK",
+    "MOVEMENT_PATTERN",
+    "GEO_FENCE",
     // Federated learning
-    "FEDERATED_LEARN", "MODEL_AGGREGATE", "PRIVACY_PRESERVE", "DISTRIBUTED_TRAIN", "SECURE_AGG",
-
+    "FEDERATED_LEARN",
+    "MODEL_AGGREGATE",
+    "PRIVACY_PRESERVE",
+    "DISTRIBUTED_TRAIN",
+    "SECURE_AGG",
     // Auto-scaling and intelligence
-    "AUTO_SCALE", "INTELLIGENT_ROUTE", "LOAD_BALANCE", "RESOURCE_PREDICT", "ADAPTIVE_CACHE",
-
+    "AUTO_SCALE",
+    "INTELLIGENT_ROUTE",
+    "LOAD_BALANCE",
+    "RESOURCE_PREDICT",
+    "ADAPTIVE_CACHE",
     // Holographic data
-    "HOLOGRAPHIC", "MULTI_DIMENSIONAL", "DATA_CUBE", "OLAP_ANALYZE", "DIMENSION_SLICE",
-
+    "HOLOGRAPHIC",
+    "MULTI_DIMENSIONAL",
+    "DATA_CUBE",
+    "OLAP_ANALYZE",
+    "DIMENSION_SLICE",
     // Neural database
-    "NEURAL_INDEX", "AUTO_LEARN", "PATTERN_RECOGNIZE", "ADAPTIVE_QUERY", "LEARNING_OPTIMIZE",
-
+    "NEURAL_INDEX",
+    "AUTO_LEARN",
+    "PATTERN_RECOGNIZE",
+    "ADAPTIVE_QUERY",
+    "LEARNING_OPTIMIZE",
     // Quantum computing integration
-    "QUANTUM_COMPUTE", "QUBIT_PROCESS", "QUANTUM_SIMULATE", "SUPERPOSITION_QUERY", "ENTANGLED_DATA",
-
+    "QUANTUM_COMPUTE",
+    "QUBIT_PROCESS",
+    "QUANTUM_SIMULATE",
+    "SUPERPOSITION_QUERY",
+    "ENTANGLED_DATA",
     // Bio-inspired algorithms
-    "BIO_INSPIRED", "GENETIC_OPTIMIZE", "SWARM_INTELLIGENCE", "NEURAL_NETWORK_DB", "EVOLUTIONARY_QUERY",
-
+    "BIO_INSPIRED",
+    "GENETIC_OPTIMIZE",
+    "SWARM_INTELLIGENCE",
+    "NEURAL_NETWORK_DB",
+    "EVOLUTIONARY_QUERY",
     // Consciousness and awareness
-    "SELF_AWARE", "ADAPTIVE_SYSTEM", "LEARNING_FEEDBACK", "SYSTEM_INTELLIGENCE", "AWARE_QUERY",
-
+    "SELF_AWARE",
+    "ADAPTIVE_SYSTEM",
+    "LEARNING_FEEDBACK",
+    "SYSTEM_INTELLIGENCE",
+    "AWARE_QUERY",
     // Multi-universe data
-    "MULTIVERSE", "PARALLEL_UNIVERSE", "DIMENSIONAL_QUERY", "ALTERNATE_REALITY", "CROSS_REALM_JOIN",
-
+    "MULTIVERSE",
+    "PARALLEL_UNIVERSE",
+    "DIMENSIONAL_QUERY",
+    "ALTERNATE_REALITY",
+    "CROSS_REALM_JOIN",
     // Time crystal computing
-    "TIME_CRYSTAL", "TEMPORAL_CRYSTAL", "PERIODIC_COMPUTE", "CRYSTAL_OPTIMIZE", "TIME_SYMMETRY",
+    "TIME_CRYSTAL",
+    "TEMPORAL_CRYSTAL",
+    "PERIODIC_COMPUTE",
+    "CRYSTAL_OPTIMIZE",
+    "TIME_SYMMETRY",
 ];
 
 /// Reserved table names that cannot be used by users
-pub const RESERVED_TABLE_NAMES: &[&str] = &[
-    "information_schema",
-    "pg_catalog",
-    "aurora_system",
-    "aurora_temp",
-];
+pub const RESERVED_TABLE_NAMES: &[&str] = &["information_schema", "pg_catalog", "aurora_system", "aurora_temp"];
 
 /// Default system schemas
-pub const SYSTEM_SCHEMAS: &[&str] = &[
-    "information_schema",
-    "aurora_system",
-];
+pub const SYSTEM_SCHEMAS: &[&str] = &["information_schema", "aurora_system"];
 
 /// Authentication and security constants
 pub const JWT_DEFAULT_EXPIRATION_HOURS: i64 = 24;

@@ -1,0 +1,45 @@
+# Rustfmt configuration for AuroraDB
+# A next-generation, memory-safe, temporal database engine
+
+# Edition
+edition = "2021"
+
+# Line width - allow longer lines for complex database expressions
+max_width = 120
+
+# Hard tabs for consistent indentation
+hard_tabs = false
+tab_spaces = 4
+
+# Function and method formatting
+fn_call_width = 100
+fn_params_layout = "Tall"
+
+# Struct and enum formatting
+struct_lit_width = 60
+struct_variant_width = 80
+
+# Import formatting
+reorder_imports = true
+
+# Chain formatting
+chain_width = 80
+
+# Array and slice formatting
+array_width = 80
+
+# Custom settings for database code
+use_field_init_shorthand = true
+use_try_shorthand = true
+
+# Match expression formatting
+match_arm_leading_pipes = "Never"
+
+# Trailing comma policy - commented out due to nightly requirement
+# trailing_comma = "Vertical"
+
+# Allow longer attribute lists for derive macros
+attr_fn_like_width = 120
+
+# Allow complex function signatures common in database APIs
+short_array_element_width_threshold = 20
