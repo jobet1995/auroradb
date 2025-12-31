@@ -1,6 +1,7 @@
 pub mod audit;
 pub mod contract;
 pub mod document;
+pub mod entity;
 pub mod filters;
 pub mod frame;
 pub mod graph;
