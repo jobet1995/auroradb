@@ -2,6 +2,7 @@ pub mod audit;
 pub mod contract;
 pub mod document;
 pub mod filters;
+pub mod frame;
 pub mod graph;
 pub mod key_value;
 pub mod methods;
