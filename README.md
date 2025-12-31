@@ -21,7 +21,7 @@
 
 ### Prerequisites
 
-- Rust 1.70 or later
+- Rust nightly (for edition 2024 support)
 - Cargo package manager
 
 ### Installing from Crates.io
@@ -38,9 +38,56 @@ cd auroradb
 cargo build --release
 ```
 
+## 🚀 Docker Deployment
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Copy `env.example` to `.env` and customize the values
+
+```bash
+cp env.example .env
+# Edit .env with your configuration
+```
+
+### Quick Start with Docker
+
+```bash
+# Start AuroraDB
+docker-compose up auroradb
+
+# Start with test database
+docker-compose --profile test up
+
+# Start with caching support
+docker-compose --profile cache up
+
+# Start everything
+docker-compose --profile test --profile cache up
+
+# Stop all services
+docker-compose down
+```
+
+### Environment Configuration
+
+All sensitive configuration is managed through the `.env` file:
+
+```bash
+# Database settings
+AURORADB_DATABASE_NAME=aurora_prod
+AURORADB_MAX_CONNECTIONS=1000
+
+# PostgreSQL (for testing)
+POSTGRES_PASSWORD=your_secure_password
+
+# Redis (for caching)
+REDIS_PASSWORD=your_redis_password
+```
+
 ## 📖 Usage
 
-### Quick Start
+### Quick Start (Library Usage)
 
 ```rust
 use auroradb::{Database, Config};

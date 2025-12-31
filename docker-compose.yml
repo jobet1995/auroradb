@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  auroradb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auroradb-server
+    ports:
+      - "${AURORADB_PORT:-8080}:8080"
+      - "${AURORADB_ADMIN_PORT:-8081}:8081"
+    volumes:
+      - auroradb_data:/app/data
+      - ./ssl:/app/ssl:ro
+      - ./config:/app/config:ro
+    environment:
+      - RUST_LOG=${RUST_LOG}
+      - AURORADB_DATABASE_NAME=${AURORADB_DATABASE_NAME}
+      - AURORADB_DATA_DIR=${AURORADB_DATA_DIR}
+      - AURORADB_MAX_CONNECTIONS=${AURORADB_MAX_CONNECTIONS}
+      - AURORADB_STORAGE_ENGINE=${AURORADB_STORAGE_ENGINE}
+      - AURORADB_TEMPORAL_ENABLED=${AURORADB_TEMPORAL_ENABLED}
+      - AURORADB_TEMPORAL_RETENTION_DAYS=${AURORADB_TEMPORAL_RETENTION_DAYS}
+    networks:
+      - auroradb-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "echo", "health check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: ["/bin/bash"]
+
+ 
+
+volumes:
+  auroradb_data:
+    driver: local
+
+networks:
+  auroradb-network:
+    driver: bridge
