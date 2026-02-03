@@ -20,7 +20,7 @@ parking_lot = "0.12"
 hashbrown = "0.12"
 regex = "1.9"
 lazy_static = "1.4"
-jsonwebtoken = "9.0"
+jsonwebtoken = "10.3"
 
 sled = "1.0.0-alpha.124"
 dialoguer = "0.10"
